@@ -190,7 +190,7 @@ int main(int argc, char *argv[]) {
 	start = clock();
 	
 	while ((rc = getword(curword, MAX_WORD, file)) != EOF) {
-		if (isalpha(*curword) && !isnoiseword(curword)) {
+		if (isalpha(*curword)) {
 			tree = insert(tree, curword);
 		}
 	}
@@ -202,7 +202,12 @@ int main(int argc, char *argv[]) {
 	rc = 0;
 	printf("Enter a word to search.\n>");
 	while((rc = getword(input, MAX_WORD, stdin)) != EOF) {
-		
+		if (isnoiseword(input)) {
+			printf("The word \'%s\' is removed as it occurs too often.\n", input);
+			printf(">");
+			continue;
+		}
+
 		node *n = find(tree, input);
 		if (n) {
 			printf("The word \'%s\' appears %d times.\n", input, n->count);
@@ -210,8 +215,6 @@ int main(int argc, char *argv[]) {
 			for (int i = 0; i < n->count; i++) {
 				printf("%d\n", n->lines[i]);
 			}
-		} else if (isnoiseword(input)) {
-			printf("The word \'%s\' is removed as it occurs too often.\n", input);
 		} else {
 			printf("The word \'%s\' does not appear.\n", input);
 		}
