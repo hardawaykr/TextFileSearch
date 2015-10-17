@@ -9,6 +9,7 @@
 #define BSIZE 100
 #define MAX_WORD 100
 
+// Node structure for binary search tree
 typedef struct node {
 	char *str;
 	int count;
@@ -18,7 +19,11 @@ typedef struct node {
 	struct node *right;
 } node;
 
+// length of noisewords list.
 int numnoisewords = 65;
+
+// List of words that are uninteresting and would be slow to search and display line
+// numbers for.
 char *noisewords[65] = {
 	"the", "I", "a", "and", "it", "of", "that", "to", "this", "from", "be",
 	"in", "have", "for", "not", "on", "no", "with", "yes", "he", "she", "as",
@@ -38,10 +43,13 @@ int curline;
 FILE *file;
 node *tree;
 
+// The getch, ungetch, ad getword methods are modified versions of those printed
+// in The C Programming language, 2nd Edition.
 int getch(FILE *fs) {
 	return ((bptr != 0) ? buffer[--bptr] : fgetc(fs));
 }
 
+// Modified from code in The C Programming language, 2nd Edition
 void ungetch(int c) {
 	if (bptr >= BSIZE) {
 		printf("Buffer overflow.");
@@ -53,6 +61,7 @@ void ungetch(int c) {
 	}
 }
 
+// Modified from code in The C Programming language, 2nd Edition
 int getword(char *str, int max, FILE *fs) {
 	int c;
 	char *word = str;
@@ -81,6 +90,7 @@ int getword(char *str, int max, FILE *fs) {
 	return word[0];
 }
 
+// Returns 1 if the word is in the noiseword list, 0 if not and -1 on error.
 int isnoiseword(char *word) {
 	check(word != NULL, "Invalid word");
 	for (int i = 0; i < numnoisewords; i++) {
@@ -93,6 +103,7 @@ error:
 	return -1;
 }
 
+// Reallocates memory for the node struct when it needs to be resized
 int resize(node *n) {
 	check(n != NULL, "Invalid resize.");
 	check_mem(n->lines);
@@ -105,6 +116,7 @@ error:
 	return -1;
 }
 
+// Frees all memory allocated to node.
 int nodedelete(node *n) {
 	check(n != NULL, "Invalid delete.");
 	if (n->lines) {
@@ -117,6 +129,7 @@ error:
 	return -1;
 }
 
+// Allocates memory on heap for node
 node *nodealloc(void) {
 	node *n = malloc(sizeof(struct node));
 	check_mem(n);
@@ -129,6 +142,8 @@ error:
 	return NULL;
 }
 
+// Inserts the provided word into the tree and increments the count. Also, stores
+// that word as occuring on the current line.
 node *insert(node *n, char *str) {
 	int cmp;
 	if (!n) {
@@ -157,6 +172,7 @@ node *insert(node *n, char *str) {
 	return n;
 }
 
+// Returns the node with the given word or NULL if not found.
 node *find(node *n, char *str) {
 	int cmp;
 	if (!n) {
@@ -172,14 +188,19 @@ node *find(node *n, char *str) {
 }
 
 int main(int argc, char *argv[]) {
+	// Check correct number of arguments
 	if (argc != 2) {
 		printf("Usage: ./textFileSearch <filename>\n");
 		return -1;
 	}
 
+	// Prints help message
 	char *argument = argv[1];
 	if (!strcmp(argument, "-h")) {
-		printf("Usage: ./textFileSearch <filename>");
+		printf("Usage: ./textFileSearch <filename>\nWhile searching simply Enter "
+		"the word to be searched or a '-' followed by either a 'q' or a 'c' to quit or "
+		"continue searching.\n");
+		return -1;
 	}
 
 	file = fopen(argv[1], "r");
@@ -190,10 +211,12 @@ int main(int argc, char *argv[]) {
 	curline = 1;
 	int rc = 0;
 
+	// Clocks to measure performance
 	clock_t start;
 	clock_t end;
 	start = clock();
 
+  	// Reads from provided file and inserts every word into binary tree.
 	while ((rc = getword(curword, MAX_WORD, file)) != EOF) {
 		if (isalpha(*curword)) {
 			tree = insert(tree, curword);
@@ -206,6 +229,8 @@ int main(int argc, char *argv[]) {
 	char input[MAX_WORD];
 	rc = 0;
 	printf("Enter a word to search. Type '-' for options.\n>");
+
+	// Loop to prompt for word to be searched and print data if found
 	while((rc = getword(input, MAX_WORD, stdin)) != EOF) {
 		if (!strcmp(input, "-")) {
 			printf(">Type q to quit or c to continue searching.\n>");
@@ -221,14 +246,14 @@ int main(int argc, char *argv[]) {
 			break;
 		}
 
+		// Do not search for word if is in noiseword list
 		if (isnoiseword(input)) {
 			printf("The word \'%s\' is removed as it occurs too often.\n", input);
 			printf(">");
 			continue;
 		}
 
-
-
+		// Display node information
 		node *n = find(tree, input);
 		if (n) {
 			printf("The word \'%s\' appears %d times.\n", input, n->count);
@@ -243,6 +268,7 @@ int main(int argc, char *argv[]) {
 	}
 	printf("\n");
 
+	// Free memory and return.
 	nodedelete(tree);
 	fclose(file);
 	return 0;

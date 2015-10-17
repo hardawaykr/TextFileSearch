@@ -1,0 +1,23 @@
+Description
+-------------
+
+This is a program that efficiently parses text input from a large file.
+It will display a count of a provided word as well as a list of the line numbers
+it occurs on.
+
+Usage
+-------------
+This program requires only standard c libraries and an included dbg.h file.
+It can be built by compiling with the make command.
+
+make textFileSearch
+
+./textFileSearch <filename>
+
+to search any .txt file
+
+or
+
+./textFileSearch -h
+
+to see options and more info on how to search.
