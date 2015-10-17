@@ -20,10 +20,10 @@ typedef struct node {
 
 int numnoisewords = 65;
 char *noisewords[65] = {
-	"the", "I", "a", "and", "it", "of", "that", "to", "this", "from", "be", 
-	"in", "have", "for", "not", "on", "no", "with", "yes", "he", "she", "as", 
-	"you", "do", "at", "but", "his", "her", "hers", "by", "they", "them", "we", "get", 
-	"an", "or", "will", "so", "my", "one", "all", "would", "their", "go", 
+	"the", "I", "a", "and", "it", "of", "that", "to", "this", "from", "be",
+	"in", "have", "for", "not", "on", "no", "with", "yes", "he", "she", "as",
+	"you", "do", "at", "but", "his", "her", "hers", "by", "they", "them", "we", "get",
+	"an", "or", "will", "so", "my", "one", "all", "would", "their", "go",
 	"up", "down", "out", "me", "when", "be", "who", "left", "both", "let", "can",
 	 "can't", "give", "there", "they're", "may", "might", "are", "am", "man", "woman"
 };
@@ -60,7 +60,7 @@ int getword(char *str, int max, FILE *fs) {
 	while (isspace(c = getch(fs))) {
 		if (c == '\n')
 			curline++;
-	} 
+	}
 
 	if (c != EOF) {
 		*word++ = c;
@@ -173,22 +173,27 @@ node *find(node *n, char *str) {
 
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
-		printf("Requires a filename argument.\n");
+		printf("Usage: ./textFileSearch <filename>\n");
 		return -1;
+	}
+
+	char *argument = argv[1];
+	if (!strcmp(argument, "-h")) {
+		printf("Usage: ./textFileSearch <filename>");
 	}
 
 	file = fopen(argv[1], "r");
 	check_mem(file);
-	
+
 	tree = NULL;
 	char curword[MAX_WORD];
 	curline = 1;
 	int rc = 0;
-	
+
 	clock_t start;
 	clock_t end;
 	start = clock();
-	
+
 	while ((rc = getword(curword, MAX_WORD, file)) != EOF) {
 		if (isalpha(*curword)) {
 			tree = insert(tree, curword);
@@ -197,16 +202,32 @@ int main(int argc, char *argv[]) {
 	end = clock();
 	double elapsed = (double) (end - start) / CLOCKS_PER_SEC;
 	printf("Indexing all of \'%s\' took: %f seconds.\n", argv[1], elapsed);
-	
+
 	char input[MAX_WORD];
 	rc = 0;
-	printf("Enter a word to search.\n>");
+	printf("Enter a word to search. Type '-' for options.\n>");
 	while((rc = getword(input, MAX_WORD, stdin)) != EOF) {
+		if (!strcmp(input, "-")) {
+			printf(">Type q to quit or c to continue searching.\n>");
+			if ((rc = getword(input, MAX_WORD, stdin)) != EOF) {
+				if (!strcmp(input, "q")) {
+					printf(">Thanks for searching.");
+					break;
+				} else if (!strcmp(input, "c")) {
+					printf("Enter a word to search. Type '-' for options.\n>");
+				}
+				continue;
+			}
+			break;
+		}
+
 		if (isnoiseword(input)) {
 			printf("The word \'%s\' is removed as it occurs too often.\n", input);
 			printf(">");
 			continue;
 		}
+
+
 
 		node *n = find(tree, input);
 		if (n) {
