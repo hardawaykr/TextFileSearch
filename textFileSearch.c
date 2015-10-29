@@ -264,7 +264,7 @@ int main(int argc, char *argv[]) {
 		} else {
 			printf("The word \'%s\' does not appear.\n", input);
 		}
-		printf(">");
+		printf(">");n
 	}
 	printf("\n");
 
